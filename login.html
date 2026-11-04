@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Group Prayers Registration Portal | Sri Subramaniar Alayam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--maroon:#711821;--maroon-d:#521118;--saffron:#c99a3e;--cream:#faf4e8;--ink:#2b1d14;--line:#ead9bd;--err:#b3261e;--ok:#1f7a3d}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);
+       background:linear-gradient(160deg,var(--cream),#f2e8d6);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+  .card{background:#fff;width:100%;max-width:430px;border-radius:16px;box-shadow:0 10px 30px rgba(90,20,20,.15);overflow:hidden}
+  .head{background:linear-gradient(180deg,rgba(38,7,11,.6),rgba(38,7,11,.94)),url(hero.jpg) center/cover;color:#fff;text-align:center;padding:26px 20px;border-bottom:3px solid var(--saffron)}
+  .head img{display:block;margin:0 auto;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))}
+  .head .om{font-size:30px;line-height:1}
+  .head h1{margin:8px 0 2px;font-size:20px;font-weight:700;font-family:Cinzel,Georgia,serif;letter-spacing:.04em}
+  .head p{margin:0;font-size:13px;opacity:.85}
+  .body{padding:22px}
+  .tabs{display:flex;border-bottom:2px solid var(--line);margin-bottom:18px}
+  .tabs button{flex:1;background:none;border:0;padding:10px;font-size:15px;font-weight:600;color:#8a7560;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+  .tabs button.on{color:var(--maroon);border-bottom-color:var(--saffron)}
+  label{display:block;font-size:13px;font-weight:600;margin:12px 0 5px}
+  input{width:100%;padding:12px;font-size:16px;border:1.5px solid var(--line);border-radius:10px;outline:none}
+  input:focus{border-color:var(--saffron)}
+  .code{letter-spacing:8px;text-align:center;font-size:24px;font-weight:700}
+  .btn{width:100%;margin-top:18px;padding:13px;font-size:16px;font-weight:700;color:#fff;background:var(--maroon);border:0;border-radius:10px;cursor:pointer}
+  .btn:hover{background:var(--maroon-d)}
+  .btn:disabled{opacity:.55;cursor:wait}
+  .link{background:none;border:0;color:var(--maroon);font-size:14px;cursor:pointer;text-decoration:underline;padding:6px}
+  .msg{margin-top:14px;font-size:14px;padding:10px 12px;border-radius:8px;display:none}
+  .msg.err{display:block;background:#fdecea;color:var(--err)}
+  .msg.ok{display:block;background:#e8f5ec;color:var(--ok)}
+  .center{text-align:center}
+  .big{font-size:42px;margin:4px 0}
+  .hint{font-size:13px;color:#7b6a58;margin:6px 0 0}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="head">
+    <img src="logo.png" alt="Sri Subramaniar Alayam logo" width="84" height="84">
+    <h1>Group Prayers Registration Portal</h1>
+    <p id="templeName">Sri Subramaniar Alayam, Lok Kawi</p>
+  </div>
+  <div class="body">
+
+    <!-- LOGIN / REGISTER -->
+    <div id="v-auth">
+      <div class="tabs">
+        <button id="tab-login" class="on" type="button">Log In</button>
+        <button id="tab-register" type="button">Register</button>
+      </div>
+
+      <form id="f-login">
+        <label for="l-email">Email address</label>
+        <input id="l-email" type="email" autocomplete="email" required placeholder="you@example.com">
+        <p class="hint">We will email you a one-time code. No password needed.</p>
+        <button class="btn" type="submit">Send me a code</button>
+      </form>
+
+      <form id="f-register" class="hidden">
+        <label for="r-name">Full name</label>
+        <input id="r-name" type="text" autocomplete="name" required minlength="3" placeholder="As in your IC">
+        <label for="r-mobile">Mobile number</label>
+        <input id="r-mobile" type="tel" autocomplete="tel" required placeholder="012-3456789">
+        <label for="r-email">Email address</label>
+        <input id="r-email" type="email" autocomplete="email" required placeholder="you@example.com">
+        <p class="hint">After you verify your email, the temple committee will approve your registration.</p>
+        <label style="display:flex;gap:10px;align-items:flex-start;font-weight:500;font-size:13px;margin-top:16px">
+          <input id="r-consent" type="checkbox" required style="width:22px;height:22px;flex:none;accent-color:var(--maroon)">
+          <span>I agree to the temple keeping my details as described in the privacy notice below.</span>
+        </label>
+        <details style="margin-top:10px;font-size:13px;color:#5b463a"><summary style="cursor:pointer;font-weight:700;color:var(--maroon)">Privacy notice</summary>
+          <ul style="padding-left:18px;margin:8px 0;line-height:1.5">
+            <li>We collect your name, mobile number, email, optional address, the groups you join, and your payment records and receipts.</li>
+            <li>We use them to run the prayer groups, contact you about prayers and confirm your payments.</li>
+            <li>Only temple committee members who have been given access can see them. We do not sell or share them outside the temple.</li>
+            <li>Receipts are kept for 24 months after they are verified, and rejected registrations for 90 days.</li>
+            <li>You can see and correct your details after you log in, and ask the committee to delete your record at any time.</li>
+          </ul></details>
+        <button class="btn" type="submit">Register &amp; send code</button>
+      </form>
+    </div>
+
+    <!-- ENTER CODE -->
+    <div id="v-code" class="hidden">
+      <p class="center">We sent a code to<br><strong id="codeEmail"></strong></p>
+      <form id="f-code">
+        <label for="c-code">Enter the code</label>
+        <input id="c-code" class="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" required placeholder="••••••">
+        <button class="btn" type="submit">Verify</button>
+      </form>
+      <div class="center" style="margin-top:10px">
+        <button class="link" id="resend" type="button">Resend code</button>
+        <button class="link" id="changeEmail" type="button">Use a different email</button>
+      </div>
+    </div>
+
+    <!-- PENDING -->
+    <div id="v-pending" class="hidden center">
+      <div class="big">⏳</div>
+      <h2 style="margin:6px 0">Registration received</h2>
+      <p>Thank you, <strong id="pName"></strong>. Your email is verified. The temple committee will review and approve your registration. You can log in again later to check.</p>
+      <button class="btn" data-signout type="button">Sign out</button>
+    </div>
+
+    <!-- REJECTED -->
+    <div id="v-rejected" class="hidden center">
+      <div class="big">🙏</div>
+      <h2 style="margin:6px 0">Registration not approved</h2>
+      <p>Please contact the temple committee for assistance.</p>
+      <button class="btn" data-signout type="button">Sign out</button>
+    </div>
+
+    <div id="msg" class="msg"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+(function () {
+  var cfg = window.PORTAL_CONFIG;
+  document.getElementById('templeName').textContent = cfg.TEMPLE_NAME;
+  var sb = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+
+  var $ = function (id) { return document.getElementById(id); };
+  var views = ['v-auth', 'v-code', 'v-pending', 'v-rejected'];
+  var pendingEmail = '', lastCooldown = 0, lastSend = null;
+
+  function show(id) {
+    views.forEach(function (v) { $(v).classList.toggle('hidden', v !== id); });
+    msg('');
+  }
+  function msg(text, ok) {
+    var m = $('msg');
+    m.textContent = text || '';
+    m.className = 'msg' + (text ? (ok ? ' ok' : ' err') : '');
+  }
+  function busy(btn, on) { if (btn) btn.disabled = on; }
+
+  // ---- tabs ----
+  function setTab(login) {
+    $('tab-login').classList.toggle('on', login);
+    $('tab-register').classList.toggle('on', !login);
+    $('f-login').classList.toggle('hidden', !login);
+    $('f-register').classList.toggle('hidden', login);
+    msg('');
+  }
+  $('tab-login').onclick = function () { setTab(true); };
+  $('tab-register').onclick = function () { setTab(false); };
+
+  // ---- Malaysian mobile number check ----
+  function cleanMobile(v) {
+    var n = v.replace(/[\s\-()]/g, '');
+    if (!/^(\+?60|0)1\d{8,9}$/.test(n)) return null;
+    if (n.indexOf('+60') === 0) n = '0' + n.slice(3);
+    else if (n.indexOf('60') === 0) n = '0' + n.slice(2);
+    return n;
+  }
+
+  // ---- send code ----
+  async function sendCode(email, options) {
+    var wait = 60 - Math.floor((Date.now() - lastCooldown) / 1000);
+    if (wait > 0 && email === pendingEmail) { msg('Please wait ' + wait + ' seconds before requesting another code.'); return false; }
+    var res = await sb.auth.signInWithOtp({ email: email, options: options });
+    if (res.error) {
+      var t = res.error.message || '';
+      if (/signups? not allowed|not found/i.test(t)) msg('This email is not registered yet. Please use the Register tab first.');
+      else if (/rate limit|too many|seconds/i.test(t)) msg('Too many requests. Please wait a few minutes and try again.');
+      else msg('Could not send the code. ' + t);
+      return false;
+    }
+    pendingEmail = email; lastCooldown = Date.now();
+    $('codeEmail').textContent = email;
+    $('c-code').value = '';
+    show('v-code');
+    msg('Code sent. Please check your inbox (and spam folder).', true);
+    $('c-code').focus();
+    return true;
+  }
+
+  $('f-login').onsubmit = async function (e) {
+    e.preventDefault();
+    var btn = e.target.querySelector('button[type=submit]'); busy(btn, true);
+    var email = $('l-email').value.trim().toLowerCase();
+    lastSend = { email: email, options: { shouldCreateUser: false } };
+    await sendCode(lastSend.email, lastSend.options);
+    busy(btn, false);
+  };
+
+  $('f-register').onsubmit = async function (e) {
+    e.preventDefault();
+    var btn = e.target.querySelector('button[type=submit]');
+    var name = $('r-name').value.trim().replace(/\s+/g, ' ');
+    var mobile = cleanMobile($('r-mobile').value);
+    var email = $('r-email').value.trim().toLowerCase();
+    if (name.length < 3) return msg('Please enter your full name.');
+    if (!mobile) return msg('Please enter a valid Malaysian mobile number, e.g. 012-3456789.');
+    if (!$('r-consent').checked) return msg('Please tick the box to agree to the privacy notice.');
+    busy(btn, true);
+    lastSend = { email: email, options: { shouldCreateUser: true, data: { full_name: name, mobile: mobile, consent: true } } };
+    await sendCode(lastSend.email, lastSend.options);
+    busy(btn, false);
+  };
+
+  $('resend').onclick = async function () { if (lastSend) await sendCode(lastSend.email, lastSend.options); };
+  $('changeEmail').onclick = function () { show('v-auth'); };
+
+  // ---- verify code ----
+  $('f-code').onsubmit = async function (e) {
+    e.preventDefault();
+    var btn = e.target.querySelector('button[type=submit]'); busy(btn, true);
+    var token = $('c-code').value.replace(/\s/g, '');
+    var res = await sb.auth.verifyOtp({ email: pendingEmail, token: token, type: 'email' });
+    if (res.error) {
+      busy(btn, false);
+      return msg('That code is incorrect or has expired. Please try again or request a new code. (' + (res.error.message || 'error') + (res.error.status ? ', ' + res.error.status : '') + ')');
+    }
+    await route();
+    busy(btn, false);
+  };
+
+  // ---- decide where the user goes, based on approval status ----
+  async function route() {
+    var s = await sb.auth.getSession();
+    var user = s.data.session && s.data.session.user;
+    if (!user) return show('v-auth');
+    var r = await sb.from('devotees').select('full_name,status').eq('id', user.id).maybeSingle();
+    if (r.error || !r.data) {
+      await sb.auth.signOut(); show('v-auth');
+      return msg('We could not find your registration. Please register first.');
+    }
+    if (r.data.status === 'approved') { window.location.href = 'portal.html'; return; }
+    if (r.data.status === 'rejected') return show('v-rejected');
+    $('pName').textContent = r.data.full_name || 'devotee';
+    show('v-pending');
+  }
+
+  document.querySelectorAll('[data-signout]').forEach(function (b) {
+    b.onclick = async function () { await sb.auth.signOut(); setTab(true); show('v-auth'); };
+  });
+
+  // already signed in from earlier?
+  route();
+})();
+</script>
+</body>
+</html>

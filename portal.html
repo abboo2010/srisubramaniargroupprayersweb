@@ -147,12 +147,12 @@
   // ---------- access check ----------
   var s = await sb.auth.getSession();
   var user = s.data.session && s.data.session.user;
-  if (!user) return (window.location.href = 'index.html');
+  if (!user) return (window.location.href = 'login.html');
   var r = await sb.from('devotees').select('id,full_name,email,mobile,address,status').eq('id', user.id).maybeSingle();
-  if (!r.data || r.data.status !== 'approved') return (window.location.href = 'index.html');
+  if (!r.data || r.data.status !== 'approved') return (window.location.href = 'login.html');
   me = r.data;
 
-  $('out').onclick = async function () { await sb.auth.signOut(); window.location.href = 'index.html'; };
+  $('out').onclick = async function () { await sb.auth.signOut(); window.location.href = 'login.html'; };
 
   // ---------- tabs ----------
   function tab(name) {
