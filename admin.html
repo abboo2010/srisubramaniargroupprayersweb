@@ -579,7 +579,20 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
     var groupSel = h('select', { id: 'rp-group', onchange: function (e) { ui.rg = e.target.value; ui.rev = 'all'; render(); } },
       D.groups.map(function (x) { return h('option', { value: x.id, text: x.name }); }));
     groupSel.value = g.id;
-    var allEvs = D.events.filter(function (e) { return Number(e.fee_amount) > 0 && (e.group_id === g.id || (ui.rann && e.group_id === null)); })
+    var baseEvs = D.events.filter(function (e) { return Number(e.fee_amount) > 0 && (e.group_id === g.id || (ui.rann && e.group_id === null)); });
+    var years = []; baseEvs.forEach(function (e) { var y = e.event_date && String(e.event_date).slice(0, 4); if (y && years.indexOf(y) < 0) years.push(y); });
+    years.sort();
+    if (ui.ry && ui.ry !== 'all' && years.indexOf(ui.ry) < 0) ui.ry = 'all';
+    var yearSel = h('select', { id: 'rp-year', onchange: function (e) { ui.ry = e.target.value; ui.rev = 'all'; render(); } },
+      [h('option', { value: 'all', text: 'All years' })].concat(years.map(function (y) { return h('option', { value: y, text: y }); })));
+    yearSel.value = ui.ry || 'all';
+    var monthSel = h('select', { id: 'rp-month', onchange: function (e) { ui.rm = e.target.value; ui.rev = 'all'; render(); } },
+      [h('option', { value: 'all', text: 'All months' })].concat(MONTHS.map(function (m, i) { return h('option', { value: pad(i + 1), text: m }); })));
+    monthSel.value = ui.rm || 'all';
+    var allEvs = baseEvs.filter(function (e) {
+        var d = String(e.event_date || '');
+        return (!ui.ry || ui.ry === 'all' || d.slice(0, 4) === ui.ry) && (!ui.rm || ui.rm === 'all' || d.slice(5, 7) === ui.rm);
+      })
       .sort(function (x, y) { return (x.event_date || '9') < (y.event_date || '9') ? -1 : 1; });
     if (ui.rev && ui.rev !== 'all' && !allEvs.some(function (e) { return e.id === ui.rev; })) ui.rev = 'all';
     var evSel = h('select', { id: 'rp-event', onchange: function (e) { ui.rev = e.target.value; render(); } },
@@ -590,7 +603,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 
     var controls = h('div', { class: 'panel noprint' }, h('h2', { text: 'Reports' }),
       h('p', { class: 'sub', text: 'Choose a group to see its member list and payment details, or pick one prayer. Then print it or save it as PDF.' }),
-      h('div', { class: 'formgrid' }, h('div', null, h('label', { for: 'rp-group', text: 'Group' }), groupSel), h('div', null, h('label', { for: 'rp-event', text: 'Prayer' }), evSel)),
+      h('div', { class: 'formgrid' }, h('div', null, h('label', { for: 'rp-group', text: 'Group' }), groupSel), h('div', null, h('label', { for: 'rp-year', text: 'Year' }), yearSel), h('div', null, h('label', { for: 'rp-month', text: 'Month' }), monthSel), h('div', null, h('label', { for: 'rp-event', text: 'Prayer' }), evSel)),
       h('label', { class: 'switch', style: 'margin-top:14px' },
         h('input', { type: 'checkbox', checked: !!ui.rann, onchange: function (e) { ui.rann = e.target.checked; render(); } }), 'Include the grand annual prayer'),
       h('div', { class: 'acts', style: 'margin-top:14px' },
@@ -638,7 +651,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
         h('thead', null, h('tr', null, h('th', { text: '#' }), h('th', { text: 'Name' }), h('th', { text: 'Mobile' }), h('th', { text: 'Email' }), h('th', { text: 'Joined' }))),
         h('tbody', null, memberRows)) : h('div', { class: 'empty', text: 'No members yet.' })),
       h('h2', { style: 'margin-top:26px', text: 'Payment details' }),
-      sections.length ? sections : h('div', { class: 'empty', text: 'No prayers with fees for this group yet.' }));
+      sections.length ? sections : h('div', { class: 'empty', text: 'No prayers with fees found for this group and period.' }));
     return h('div', null, controls, paper);
   }
 
