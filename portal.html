@@ -293,6 +293,7 @@
     }
     box.appendChild(el('div', null, settings.bank_name || ''));
     box.appendChild(el('div', null, settings.account_name || ''));
+    if (settings.account_number) {
     var row = el('div', 'row');
     row.appendChild(el('span', 'acct', settings.account_number));
     var cp = el('button', 'copy', 'Copy'); cp.type = 'button';
@@ -300,6 +301,7 @@
       if (navigator.clipboard) navigator.clipboard.writeText(settings.account_number).then(function () { toast('Account number copied.', true); });
     };
     row.appendChild(cp); box.appendChild(row);
+    }
     if (settings.payment_note) box.appendChild(el('div', 'meta', settings.payment_note));
     if (settings.qr_image) {
       var qr = el('div', null); qr.style.cssText = 'text-align:center;margin-top:12px';
