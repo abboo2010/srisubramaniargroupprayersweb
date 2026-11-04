@@ -287,7 +287,7 @@
 
   function renderBank() {
     var box = $('bank'); box.textContent = '';
-    if (!settings || !settings.account_number) {
+    if (!settings || (!settings.account_number && !settings.qr_image)) {
       box.textContent = 'The temple has not provided bank details yet. Please contact the temple committee.';
       return;
     }
@@ -301,6 +301,13 @@
     };
     row.appendChild(cp); box.appendChild(row);
     if (settings.payment_note) box.appendChild(el('div', 'meta', settings.payment_note));
+    if (settings.qr_image) {
+      var qr = el('div', null); qr.style.cssText = 'text-align:center;margin-top:12px';
+      var im = document.createElement('img'); im.src = settings.qr_image; im.alt = 'Payment QR code';
+      im.style.cssText = 'max-width:220px;width:100%;border:1px solid #ead9bd;border-radius:10px;background:#fff';
+      qr.appendChild(im); qr.appendChild(el('div', 'meta', 'Or scan this QR code to pay'));
+      box.appendChild(qr);
+    }
   }
 
   function updateTotal() {
