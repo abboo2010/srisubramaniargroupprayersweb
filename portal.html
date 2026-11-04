@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Portal | Sri Subramaniar Alayam</title>
+<style>
+  :root{--maroon:#711821;--maroon-d:#521118;--saffron:#c99a3e;--cream:#faf4e8;--ink:#2b1d14;--line:#ead9bd;--err:#b3261e;--ok:#1f7a3d}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--cream);color:var(--ink)}
+  header{background:linear-gradient(90deg,#26070b,#521118);border-bottom:3px solid var(--saffron);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  header h1{margin:0;font-size:17px}
+  header small{display:block;font-weight:400;opacity:.8;font-size:12px}
+  .out{background:#fff;color:var(--maroon);border:0;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer}
+  nav{display:flex;background:#fff;border-bottom:2px solid var(--line);position:sticky;top:0;z-index:5}
+  nav button{flex:1;background:none;border:0;padding:13px 6px;font-size:15px;font-weight:600;color:#8a7560;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+  nav button.on{color:var(--maroon);border-bottom-color:var(--saffron)}
+  nav button:disabled{opacity:.45;cursor:not-allowed}
+  main{max-width:720px;margin:20px auto;padding:0 14px 40px}
+  .box{background:#fff;border-radius:14px;padding:20px;box-shadow:0 6px 20px rgba(90,20,20,.1)}
+  h2{margin:0 0 4px;font-size:20px}
+  .sub{margin:0 0 16px;color:#7b6a58;font-size:14px}
+  .grp{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+  .grp.joined{border-color:var(--saffron);background:#fffaf0}
+  .grp h3{margin:0 0 3px;font-size:16px}
+  .grp p{margin:0;font-size:13px;color:#7b6a58}
+  .badge{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--ok);border-radius:20px;padding:2px 9px;margin-left:6px;vertical-align:middle}
+  .btn{padding:10px 16px;font-size:14px;font-weight:700;color:#fff;background:var(--maroon);border:0;border-radius:9px;cursor:pointer;white-space:nowrap}
+  .btn:hover{background:var(--maroon-d)}
+  .btn.ghost{background:#fff;color:var(--maroon);border:1.5px solid var(--maroon)}
+  .btn:disabled{opacity:.55;cursor:wait}
+  label{display:block;font-size:13px;font-weight:600;margin:14px 0 5px}
+  input,textarea{width:100%;padding:12px;font-size:16px;font-family:inherit;border:1.5px solid var(--line);border-radius:10px;outline:none}
+  input:focus,textarea:focus{border-color:var(--saffron)}
+  input[readonly]{background:#f6efe2;color:#6d5d4c}
+  .hint{font-size:12px;color:#7b6a58;margin:4px 0 0}
+  .full{width:100%;margin-top:18px;padding:13px;font-size:16px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);padding:11px 18px;border-radius:10px;color:#fff;font-size:14px;display:none;z-index:20;max-width:90%}
+  .toast.ok{background:var(--ok)} .toast.err{background:var(--err)}
+  .hidden{display:none}
+  .empty{text-align:center;color:#7b6a58;padding:20px 0}
+  .stat{margin:0 0 16px;padding:12px 14px;background:#fffaf0;border:1.5px solid var(--line);border-radius:10px;font-size:14px}
+  input[type=checkbox]{width:22px;height:22px;padding:0;margin:0;flex:none;accent-color:var(--maroon)}
+  input[type=file]{padding:9px;font-size:14px;background:#fff}
+  .sec{font-size:15px;margin:24px 0 10px;color:var(--maroon)}
+  .bank{background:#fffaf0;border:1.5px solid var(--saffron);border-radius:12px;padding:14px;font-size:14px;line-height:1.6}
+  .bank .row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+  .bank .acct{font-size:18px;font-weight:700;letter-spacing:1px}
+  .copy{background:none;border:1.5px solid var(--maroon);color:var(--maroon);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer}
+  .ev{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+  .ev:has(input:checked){border-color:var(--saffron);background:#fffaf0}
+  .ev .evi{flex:1}
+  .meta{font-size:12px;color:#7b6a58;margin-top:2px}
+  .fee{font-weight:700;color:var(--maroon);white-space:nowrap}
+  .total{margin-top:14px;font-size:16px;text-align:right}
+  .pay{border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+  .pay .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .st{font-size:11px;font-weight:700;color:#fff;border-radius:20px;padding:3px 10px;white-space:nowrap}
+  .st.pending{background:#c98a00} .st.verified{background:var(--ok)} .st.rejected{background:var(--err)}
+  .note{margin-top:8px;font-size:13px;background:#fdecea;color:var(--err);border-radius:8px;padding:8px 10px}
+  .proof{margin-top:8px;background:none;border:0;color:var(--maroon);text-decoration:underline;font-size:13px;cursor:pointer;padding:0}
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;align-items:center;gap:10px"><img src="logo.png" alt="" width="42" height="42"><h1>Group Prayers Registration Portal<small id="templeName"></small></h1></div>
+  <button class="out" id="out" type="button">Sign out</button>
+</header>
+<nav>
+  <button id="t-groups" class="on" type="button">My Groups</button>
+  <button id="t-details" type="button">My Details</button>
+  <button id="t-pay" type="button">Payments</button>
+</nav>
+
+<main>
+  <div id="loading" class="box">Checking access…</div>
+
+  <section id="p-groups" class="box hidden">
+    <h2>Vanakkam, <span id="who"></span> 🙏</h2>
+    <p class="sub">Join the prayer groups you wish to take part in. You can leave a group at any time.</p>
+    <div id="summary" class="stat"></div>
+    <div id="groupList"></div>
+  </section>
+
+  <section id="p-details" class="box hidden">
+    <h2>My Details</h2>
+    <p class="sub">Keep your details up to date so the temple can reach you.</p>
+    <form id="f-details">
+      <label for="d-name">Full name</label>
+      <input id="d-name" type="text" required minlength="3" autocomplete="name">
+      <label for="d-email">Email address</label>
+      <input id="d-email" type="email" readonly>
+      <p class="hint">Your email is your login and cannot be changed here. Please contact the temple committee to change it.</p>
+      <label for="d-mobile">Mobile number</label>
+      <input id="d-mobile" type="tel" required autocomplete="tel">
+      <label for="d-address">Address (optional)</label>
+      <textarea id="d-address" rows="3" autocomplete="street-address"></textarea>
+      <button class="btn full" type="submit">Save changes</button>
+    </form>
+  </section>
+
+  <section id="p-pay" class="box hidden">
+    <h2>Payments</h2>
+    <p class="sub">Pay by bank transfer, then upload your proof of payment here.</p>
+    <div id="bank" class="bank"></div>
+
+    <h3 class="sec">1. Choose the prayers you are paying for</h3>
+    <div id="evList"></div>
+
+    <form id="f-pay">
+      <div class="total">Total to transfer: <strong id="total">RM 0.00</strong></div>
+      <h3 class="sec">2. Upload your proof</h3>
+      <label for="p-date">Date of transfer</label>
+      <input id="p-date" type="date" required>
+      <label for="p-ref">Bank reference / transaction no. (optional)</label>
+      <input id="p-ref" type="text" maxlength="60">
+      <label for="p-file">Proof of payment (photo, screenshot or PDF)</label>
+      <input id="p-file" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required>
+      <p class="hint">JPG, PNG, WEBP or PDF. Maximum 5 MB. Make sure the amount and date are clearly visible.</p>
+      <button class="btn full" type="submit">Submit proof of payment</button>
+    </form>
+
+    <h3 class="sec">My payments</h3>
+    <div id="history"></div>
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+(async function () {
+  var cfg = window.PORTAL_CONFIG;
+  var sb = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+  var $ = function (id) { return document.getElementById(id); };
+  $('templeName').textContent = cfg.TEMPLE_NAME;
+
+  var me = null, groups = [], joined = new Set(), toastTimer;
+
+  function toast(text, ok) {
+    var t = $('toast');
+    t.textContent = text; t.className = 'toast ' + (ok ? 'ok' : 'err'); t.style.display = 'block';
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.style.display = 'none'; }, 3500);
+  }
+
+  // ---------- access check ----------
+  var s = await sb.auth.getSession();
+  var user = s.data.session && s.data.session.user;
+  if (!user) return (window.location.href = 'index.html');
+  var r = await sb.from('devotees').select('id,full_name,email,mobile,address,status').eq('id', user.id).maybeSingle();
+  if (!r.data || r.data.status !== 'approved') return (window.location.href = 'index.html');
+  me = r.data;
+
+  $('out').onclick = async function () { await sb.auth.signOut(); window.location.href = 'index.html'; };
+
+  // ---------- tabs ----------
+  function tab(name) {
+    ['groups', 'details', 'pay'].forEach(function (n) {
+      $('t-' + n).classList.toggle('on', n === name);
+      $('p-' + n).classList.toggle('hidden', n !== name);
+    });
+  }
+  $('t-groups').onclick = function () { tab('groups'); };
+  $('t-details').onclick = function () { tab('details'); };
+  $('t-pay').onclick = function () { tab('pay'); loadPay(); };
+
+  // ---------- groups ----------
+  async function loadGroups() {
+    var g = await sb.from('groups').select('id,name,description').order('name');
+    var m = await sb.from('memberships').select('group_id');
+    if (g.error || m.error) { toast('Could not load groups. Please refresh the page.'); return; }
+    groups = g.data || [];
+    joined = new Set((m.data || []).map(function (x) { return x.group_id; }));
+    renderGroups();
+  }
+
+  function renderGroups() {
+    var list = $('groupList');
+    list.textContent = '';
+    $('summary').textContent = joined.size === 0
+      ? 'You have not joined any group yet.'
+      : 'You are a member of ' + joined.size + ' group' + (joined.size > 1 ? 's' : '') + '.';
+
+    if (!groups.length) {
+      var e = document.createElement('div'); e.className = 'empty'; e.textContent = 'No groups are open right now.';
+      list.appendChild(e); return;
+    }
+    groups.forEach(function (g) {
+      var isIn = joined.has(g.id);
+      var row = document.createElement('div'); row.className = 'grp' + (isIn ? ' joined' : '');
+      var info = document.createElement('div');
+      var h = document.createElement('h3'); h.textContent = g.name;
+      if (isIn) { var b = document.createElement('span'); b.className = 'badge'; b.textContent = 'Joined'; h.appendChild(b); }
+      info.appendChild(h);
+      if (g.description) { var p = document.createElement('p'); p.textContent = g.description; info.appendChild(p); }
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn' + (isIn ? ' ghost' : '');
+      btn.textContent = isIn ? 'Leave' : 'Join';
+      btn.onclick = function () { isIn ? leave(g, btn) : join(g, btn); };
+      row.appendChild(info); row.appendChild(btn);
+      list.appendChild(row);
+    });
+  }
+
+  async function join(g, btn) {
+    btn.disabled = true;
+    var res = await sb.from('memberships').insert({ devotee_id: me.id, group_id: g.id });
+    if (res.error && res.error.code !== '23505') { btn.disabled = false; return toast('Could not join the group. Please try again.'); }
+    joined.add(g.id); renderGroups(); toast('You joined ' + g.name + '.', true);
+  }
+
+  async function leave(g, btn) {
+    if (!confirm('Leave ' + g.name + '?')) return;
+    btn.disabled = true;
+    var res = await sb.from('memberships').delete().eq('group_id', g.id).eq('devotee_id', me.id);
+    if (res.error) { btn.disabled = false; return toast('Could not leave the group. Please try again.'); }
+    joined.delete(g.id); renderGroups(); toast('You left ' + g.name + '.', true);
+  }
+
+  // ---------- details ----------
+  function cleanMobile(v) {
+    var n = v.replace(/[\s\-()]/g, '');
+    if (!/^(\+?60|0)1\d{8,9}$/.test(n)) return null;
+    if (n.indexOf('+60') === 0) n = '0' + n.slice(3);
+    else if (n.indexOf('60') === 0) n = '0' + n.slice(2);
+    return n;
+  }
+
+  function fillDetails() {
+    $('who').textContent = me.full_name;
+    $('d-name').value = me.full_name || '';
+    $('d-email').value = me.email || '';
+    $('d-mobile').value = me.mobile || '';
+    $('d-address').value = me.address || '';
+  }
+
+  $('f-details').onsubmit = async function (e) {
+    e.preventDefault();
+    var btn = e.target.querySelector('button[type=submit]');
+    var name = $('d-name').value.trim().replace(/\s+/g, ' ');
+    var mobile = cleanMobile($('d-mobile').value);
+    var address = $('d-address').value.trim();
+    if (name.length < 3) return toast('Please enter your full name.');
+    if (!mobile) return toast('Please enter a valid Malaysian mobile number, e.g. 012-3456789.');
+    btn.disabled = true;
+    var res = await sb.from('devotees').update({ full_name: name, mobile: mobile, address: address || null }).eq('id', me.id);
+    btn.disabled = false;
+    if (res.error) return toast('Could not save your details. Please try again.');
+    me.full_name = name; me.mobile = mobile; me.address = address || null;
+    fillDetails(); toast('Your details have been saved.', true);
+  };
+
+  // ---------- payments ----------
+  var events = [], payments = [], settings = null, picked = new Set();
+  var typeLabel = { monthly: 'Monthly prayer', special: 'Special prayer', annual: 'Grand annual prayer' };
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function rm(n) { return 'RM ' + Number(n).toFixed(2); }
+  function fmtDate(d) { if (!d) return ''; var p = String(d).slice(0, 10).split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  async function loadPay() {
+    var a = await sb.from('temple_settings').select('*').eq('id', 1).maybeSingle();
+    var b = await sb.from('prayer_events')
+      .select('id,title,event_type,event_date,fee_amount,group_id,groups(name)')
+      .eq('is_active', true).gt('fee_amount', 0)
+      .order('event_date', { ascending: true, nullsFirst: false });
+    var c = await sb.from('payments')
+      .select('id,event_id,amount,paid_on,bank_reference,proof_path,status,admin_note,created_at,prayer_events(title,event_date)')
+      .order('created_at', { ascending: false });
+    if (b.error || c.error) return toast('Could not load payment information. Please refresh the page.');
+    settings = a.data; events = b.data || []; payments = c.data || [];
+    $('p-date').max = todayStr();
+    if (!$('p-date').value) $('p-date').value = todayStr();
+    renderBank(); renderEvents(); renderHistory();
+  }
+
+  function renderBank() {
+    var box = $('bank'); box.textContent = '';
+    if (!settings || !settings.account_number) {
+      box.textContent = 'The temple has not provided bank details yet. Please contact the temple committee.';
+      return;
+    }
+    box.appendChild(el('div', null, settings.bank_name || ''));
+    box.appendChild(el('div', null, settings.account_name || ''));
+    var row = el('div', 'row');
+    row.appendChild(el('span', 'acct', settings.account_number));
+    var cp = el('button', 'copy', 'Copy'); cp.type = 'button';
+    cp.onclick = function () {
+      if (navigator.clipboard) navigator.clipboard.writeText(settings.account_number).then(function () { toast('Account number copied.', true); });
+    };
+    row.appendChild(cp); box.appendChild(row);
+    if (settings.payment_note) box.appendChild(el('div', 'meta', settings.payment_note));
+  }
+
+  function updateTotal() {
+    var sum = 0;
+    events.forEach(function (ev) { if (picked.has(ev.id)) sum += Number(ev.fee_amount); });
+    $('total').textContent = rm(sum);
+  }
+
+  function renderEvents() {
+    var list = $('evList'); list.textContent = '';
+    var taken = new Set(payments.filter(function (p) { return p.status !== 'rejected'; }).map(function (p) { return p.event_id; }));
+    var open = events.filter(function (ev) { return !taken.has(ev.id); });
+    Array.from(picked).forEach(function (id) { if (!open.some(function (ev) { return ev.id === id; })) picked.delete(id); });
+    $('f-pay').classList.toggle('hidden', open.length === 0);
+    if (!open.length) {
+      list.appendChild(el('div', 'empty', events.length
+        ? 'You have no unpaid prayers right now. Thank you! 🙏'
+        : 'There are no prayers with fees for your groups right now. You can join a group in the My Groups tab.'));
+      updateTotal(); return;
+    }
+    open.forEach(function (ev) {
+      var row = el('label', 'ev');
+      var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = picked.has(ev.id);
+      cb.onchange = function () { if (cb.checked) picked.add(ev.id); else picked.delete(ev.id); updateTotal(); };
+      var info = el('div', 'evi');
+      info.appendChild(el('strong', null, ev.title));
+      var meta = [typeLabel[ev.event_type], ev.group_id ? (ev.groups && ev.groups.name) || '' : 'Whole temple'];
+      if (ev.event_date) meta.push(fmtDate(ev.event_date));
+      info.appendChild(el('div', 'meta', meta.filter(Boolean).join(' · ')));
+      row.appendChild(cb); row.appendChild(info); row.appendChild(el('div', 'fee', rm(ev.fee_amount)));
+      list.appendChild(row);
+    });
+    updateTotal();
+  }
+
+  function renderHistory() {
+    var box = $('history'); box.textContent = '';
+    if (!payments.length) { box.appendChild(el('div', 'empty', 'No payments submitted yet.')); return; }
+    var label = { pending: 'Pending review', verified: 'Verified', rejected: 'Rejected' };
+    payments.forEach(function (p) {
+      var card = el('div', 'pay'), top = el('div', 'top');
+      var left = el('div');
+      left.appendChild(el('strong', null, (p.prayer_events && p.prayer_events.title) || 'Prayer'));
+      var meta = [rm(p.amount)];
+      if (p.paid_on) meta.push('paid ' + fmtDate(p.paid_on));
+      if (p.bank_reference) meta.push('ref ' + p.bank_reference);
+      left.appendChild(el('div', 'meta', meta.join(' · ')));
+      top.appendChild(left); top.appendChild(el('span', 'st ' + p.status, label[p.status] || p.status));
+      card.appendChild(top);
+      if (p.status === 'rejected') {
+        card.appendChild(el('div', 'note', 'Not accepted' + (p.admin_note ? ': ' + p.admin_note : '.') + ' You can submit again above.'));
+      }
+      if (p.proof_path) {
+        var v = el('button', 'proof', 'View my proof'); v.type = 'button';
+        v.onclick = function () { viewProof(p.proof_path); };
+        card.appendChild(v);
+      }
+      box.appendChild(card);
+    });
+  }
+
+  async function viewProof(path) {
+    var w = window.open('', '_blank');
+    var r = await sb.storage.from('payment-proofs').createSignedUrl(path, 120);
+    if (r.error || !r.data) { if (w) w.close(); return toast('Could not open the proof. Please try again.'); }
+    if (w) w.location = r.data.signedUrl; else window.location = r.data.signedUrl;
+  }
+
+  // shrink large phone photos so uploads are quick
+  function shrink(file) {
+    return new Promise(function (resolve) {
+      if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size < 1500000) return resolve(file);
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function () {
+        var sc = Math.min(1, 1800 / Math.max(img.width, img.height));
+        var c = document.createElement('canvas');
+        c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(function (b) { resolve(b && b.size < file.size ? b : file); }, 'image/jpeg', 0.85);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+
+  $('f-pay').onsubmit = async function (e) {
+    e.preventDefault();
+    var btn = e.target.querySelector('button[type=submit]');
+    var ids = Array.from(picked);
+    if (!ids.length) return toast('Please select at least one prayer you are paying for.');
+    var file = $('p-file').files[0];
+    if (!file) return toast('Please attach your proof of payment.');
+    if (!/^(image\/(jpeg|png|webp)|application\/pdf)$/.test(file.type)) return toast('Please upload a JPG, PNG, WEBP or PDF file.');
+    var paidOn = $('p-date').value;
+    if (!paidOn || paidOn > todayStr()) return toast('Please choose the date you made the transfer.');
+
+    btn.disabled = true;
+    var blob = await shrink(file);
+    if (blob.size > 5 * 1024 * 1024) { btn.disabled = false; return toast('The file is larger than 5 MB. Please upload a smaller one.'); }
+    var ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'application/pdf': 'pdf' }[blob.type] || 'jpg';
+    var path = me.id + '/' + Date.now() + '.' + ext;
+
+    var up = await sb.storage.from('payment-proofs').upload(path, blob, { contentType: blob.type, upsert: false });
+    if (up.error) { btn.disabled = false; return toast('Could not upload the file. Please try again.'); }
+
+    var ref = $('p-ref').value.trim() || null;
+    var rows = ids.map(function (id) {
+      var ev = events.find(function (x) { return x.id === id; });
+      return { devotee_id: me.id, event_id: id, amount: ev.fee_amount, paid_on: paidOn, bank_reference: ref, proof_path: path, status: 'pending' };
+    });
+    var ins = await sb.from('payments').insert(rows);
+    if (ins.error) {
+      await sb.storage.from('payment-proofs').remove([path]);
+      btn.disabled = false;
+      return toast(ins.error.code === '23505' ? 'A payment for one of these prayers was already submitted.' : 'Could not save your payment. Please try again.');
+    }
+    picked.clear(); $('p-file').value = ''; $('p-ref').value = '';
+    btn.disabled = false;
+    toast('Proof submitted. The committee will verify it soon.', true);
+    await loadPay();
+  };
+
+  // ---------- go ----------
+  fillDetails();
+  await loadGroups();
+  $('loading').classList.add('hidden');
+  $('p-groups').classList.remove('hidden');
+})();
+</script>
+</body>
+</html>
