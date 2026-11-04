@@ -707,6 +707,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
     groupSel.value = g.id;
     var baseEvs = D.events.filter(function (e) { return Number(e.fee_amount) > 0 && (e.group_id === g.id || (ui.rann && e.group_id === null)); });
     var years = []; baseEvs.forEach(function (e) { var y = e.event_date && String(e.event_date).slice(0, 4); if (y && years.indexOf(y) < 0) years.push(y); });
+    [String(new Date().getFullYear()), String(new Date().getFullYear() + 1)].forEach(function (y) { if (years.indexOf(y) < 0) years.push(y); });
     years.sort();
     if (ui.ry && ui.ry !== 'all' && years.indexOf(ui.ry) < 0) ui.ry = 'all';
     var yearSel = h('select', { id: 'rp-year', onchange: function (e) { ui.ry = e.target.value; ui.rev = 'all'; render(); } },
