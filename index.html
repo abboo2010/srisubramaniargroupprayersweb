@@ -217,7 +217,7 @@
     var res = await sb.auth.verifyOtp({ email: pendingEmail, token: token, type: 'email' });
     if (res.error) {
       busy(btn, false);
-      return msg('That code is incorrect or has expired. Please try again or request a new code.');
+      return msg('That code is incorrect or has expired. Please try again or request a new code. (' + (res.error.message || 'error') + (res.error.status ? ', ' + res.error.status : '') + ')');
     }
     await route();
     busy(btn, false);
