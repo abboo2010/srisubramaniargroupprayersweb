@@ -564,11 +564,22 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   /* =====================================================
      START
      ===================================================== */
+  function viaPassword(session) {
+    try {
+      var p = JSON.parse(atob(session.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return (p.amr || []).some(function (a) { return a.method === 'password'; });
+    } catch (e) { return false; }
+  }
   async function boot() {
     try {
       var s = await sb.auth.getSession();
       var user = s.data.session && s.data.session.user;
       if (!user) { me = null; D = null; return render(); }
+      if (!viaPassword(s.data.session)) {
+        // signed in some other way (for example an email code on the member page): ask for the password
+        me = null; D = null; authView.screen = 'login';
+        say('For the committee panel, please sign in with your password.'); return render();
+      }
       var r = await sb.from('admins').select('full_name,email,role').eq('user_id', user.id).maybeSingle();
       if (r.error || !r.data) {
         await sb.auth.signOut(); me = null; D = null; authView.screen = 'login';
