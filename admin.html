@@ -261,7 +261,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
       sb.from('groups').select('*').order('created_at'),
       sb.from('memberships').select('*'),
       sb.from('prayer_events').select('*').order('event_date'),
-      sb.from('payments').select('id,devotee_id,event_id,amount,status,paid_on,bank_reference'),
+      sb.from('payments').select('id,devotee_id,event_id,amount,status,paid_on,bank_reference,proof_path,admin_note,created_at,reviewed_at'),
       sb.from('temple_settings').select('*').eq('id', 1).maybeSingle()
     ]);
     for (var i = 0; i < r.length; i++) { if (r[i].error) throw r[i].error; }
@@ -380,6 +380,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
     var tabs = [
       { id: 'overview', label: 'Overview', icon: 'grid' },
       { id: 'devotees', label: 'Devotees', n: pendDev, icon: 'users' },
+      { id: 'payments', label: 'Payments', n: pendPay, icon: 'bank' },
       { id: 'groups', label: 'Groups', icon: 'layers' },
       { id: 'prayers', label: 'Prayers & fees', icon: 'calendar' },
       { id: 'reports', label: 'Reports', icon: 'grid' },
@@ -395,7 +396,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
       })),
       h('div', { class: 'me' }, h('b', { text: me.name }), can() ? pill('approved', 'Main admin') : pill('pending', 'View only'),
         h('button', { class: 'out', type: 'button', text: 'Sign out', onclick: async function () { await sb.auth.signOut(); me = null; D = null; authView.screen = 'login'; render(); } })));
-    var fn = { overview: admOverview, devotees: admDevotees, groups: admGroups, prayers: admPrayers, reports: admReports, bank: admBank }[cur.id];
+    var fn = { overview: admOverview, devotees: admDevotees, groups: admGroups, prayers: admPrayers, payments: admPayments, reports: admReports, bank: admBank }[cur.id];
     var main = h('section', { class: 'main' },
       h('div', { class: 'crumb' }, h('span', null, 'Committee › ', h('b', { text: cur.label })), h('span', { text: fmtDate(todayISO()) })),
       can() ? null : h('div', { class: 'stat', text: 'View-only access. You can look at everything but cannot change anything.' }),
@@ -565,6 +566,56 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
     return h('div', null,
       h('div', { class: 'panel' }, h('h2', { text: 'Prayers & fees' }), h('p', { class: 'sub', text: 'Set the fee for each monthly, special and annual prayer. Every prayer needs a date.' }), can() ? form : null),
       h('div', { class: 'panel' }, sections.some(Boolean) ? sections : h('div', { class: 'empty', text: 'No prayers yet.' })));
+  }
+
+  /* ---------- Payments (check proofs, verify or reject) ---------- */
+  function evOf(id) { return D.events.filter(function (x) { return x.id === id; })[0]; }
+  async function viewProof(p) {
+    if (!p.proof_path) return toast('No proof was uploaded for this payment.', true);
+    var r = await sb.storage.from('payment-proofs').createSignedUrl(p.proof_path, 300);
+    if (r.error) return toast(errText(r.error), true);
+    var isPdf = /\.pdf$/i.test(p.proof_path);
+    var view = isPdf
+      ? h('p', null, h('a', { href: r.data.signedUrl, target: '_blank', rel: 'noopener', text: 'Open the PDF in a new tab' }))
+      : h('img', { src: r.data.signedUrl, alt: 'Payment proof', style: 'max-width:100%;max-height:60vh;display:block;margin:0 auto;border-radius:8px' });
+    openModal('Proof of payment', view);
+  }
+  function setPay(p, status, note) {
+    if (!can()) return;
+    var d = dev(p.devotee_id), ev = evOf(p.event_id);
+    var upd = { status: status, admin_note: note || null };
+    act(sb.from('payments').update(upd).eq('id', p.id), status === 'verified' ? 'Payment verified.' : 'Payment rejected.').then(function (ok) {
+      if (ok) logIt((status === 'verified' ? 'Verified' : 'Rejected') + ' payment: ' + (d ? d.full_name : '') + ' for ' + (ev ? ev.title : ''));
+    });
+  }
+  function rejectPay(p) {
+    var ta = h('textarea', { rows: 3, placeholder: 'Reason, e.g. Amount does not match / unclear picture' });
+    openModal('Reject this payment?', h('div', null, h('p', { class: 'meta', text: 'The devotee will see your note and can submit a new proof.' }), ta), [
+      h('button', { class: 'btn ghost', type: 'button', text: 'Cancel', onclick: closeModal }),
+      h('button', { class: 'btn bad', type: 'button', text: 'Reject', onclick: function () { var n = ta.value.trim(); closeModal(); setPay(p, 'rejected', n); } })]);
+  }
+  function admPayments() {
+    ui.pf = ui.pf || 'pending';
+    var list = D.payments.filter(function (p) { return ui.pf === 'all' || p.status === ui.pf; })
+      .sort(function (x, y) { return x.created_at < y.created_at ? 1 : -1; });
+    var rows = list.map(function (p) {
+      var d = dev(p.devotee_id) || {}, ev = evOf(p.event_id);
+      return h('div', { class: 'row' },
+        h('div', { class: 'grow' },
+          h('b', { text: d.full_name || 'Unknown devotee' }), ' ', pill(p.status),
+          h('div', { class: 'meta', text: d.mobile || '' }),
+          ev ? h('div', { class: 'meta', text: ev.title + ' · ' + TYPES[ev.event_type] + ' · ' + (ev.event_date ? fmtDate(ev.event_date) : 'no date') }) : null,
+          h('div', { class: 'meta', text: rm(p.amount) + (p.paid_on ? ' · paid ' + fmtDate(p.paid_on) : '') + (p.bank_reference ? ' · ref ' + p.bank_reference : '') }),
+          p.admin_note ? h('div', { class: 'meta', text: 'Note: ' + p.admin_note }) : null),
+        h('div', { class: 'acts' },
+          p.proof_path ? h('button', { class: 'btn ghost', type: 'button', text: 'View proof', onclick: function () { viewProof(p); } }) : null,
+          can() && p.status !== 'verified' ? h('button', { class: 'btn', type: 'button', text: 'Verify', onclick: function () { setPay(p, 'verified', null); } }) : null,
+          can() && p.status === 'pending' ? h('button', { class: 'btn bad', type: 'button', text: 'Reject', onclick: function () { rejectPay(p); } }) : null));
+    });
+    return h('div', { class: 'panel' }, h('h2', { text: 'Payments' }),
+      h('p', { class: 'sub', text: 'Check each proof of payment against your bank statement, then verify or reject it.' }),
+      chips([['pending', 'To check'], ['verified', 'Verified'], ['rejected', 'Rejected'], ['all', 'All']], ui.pf, function (v) { ui.pf = v; render(); }),
+      rows.length ? h('div', { class: 'rows' }, rows) : h('div', { class: 'empty', text: 'Nothing here.' }));
   }
 
   /* ---------- Reports (by group, or by a single prayer) ---------- */
