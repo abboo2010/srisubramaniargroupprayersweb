@@ -168,6 +168,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   var cfg = window.PORTAL_CONFIG;
   var TEMPLE = cfg.TEMPLE_NAME;
   var sb = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+  var MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var TYPES = { monthly: 'Monthly pooja', special: 'Special pooja', annual: 'Grand annual pooja' };
   var ICONS = {
@@ -532,8 +533,11 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
     var form = h('form', { onsubmit: async function (e) {
         e.preventDefault();
         var title = $('#e-title').value.trim(), fee = parseFloat($('#e-fee').value), date = $('#e-date').value;
+        var mon = $('#e-month').value;
+        if (!mon) return toast('Please choose the month.', true);
         if (title.length < 3) return toast('Please enter a title.', true);
         if (!date) return toast('Please choose the date of the prayer.', true);
+        if (date.slice(5, 7) !== mon) return toast('The date is not in ' + MONTHS_FULL[+mon - 1] + '. Please check the month and the date.', true);
         if (isNaN(fee) || fee < 0) return toast('Please enter a valid fee.', true);
         var ok = await act(sb.from('prayer_events').insert({ group_id: $('#e-group').value || null, title: title, event_type: $('#e-type').value, event_date: date, fee_amount: fee }), 'Prayer created. Devotees can now see it.');
         if (ok) logIt('Created prayer: ' + title + ' (' + rm(fee) + ')');
@@ -541,8 +545,16 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
       h('div', { class: 'formgrid' },
         h('div', null, h('label', { for: 'e-group', text: 'For' }), h('select', { id: 'e-group' }, groupsOpt)),
         h('div', null, h('label', { for: 'e-type', text: 'Type' }), h('select', { id: 'e-type' }, Object.keys(TYPES).map(function (k) { return h('option', { value: k, text: TYPES[k] }); }))),
+        h('div', null, h('label', { for: 'e-month', text: 'Month' }), h('select', { id: 'e-month', required: true, onchange: function (ev) {
+          var m = ev.target.value, d = $('#e-date');
+          if (m && d.value.slice(5, 7) !== m) {
+            var now = new Date(), y = now.getFullYear();
+            if (+m < now.getMonth() + 1) y++;       // a past month means next year
+            d.value = y + '-' + m + '-01';
+          }
+        } }, [h('option', { value: '', text: 'Select month' })].concat(MONTHS_FULL.map(function (n, i) { return h('option', { value: pad(i + 1), text: n }); })))),
         h('div', null, h('label', { for: 'e-title', text: 'Title' }), h('input', { id: 'e-title', type: 'text', required: true, placeholder: 'e.g. Perumal Monthly Prayer, December 2026' })),
-        h('div', null, h('label', { for: 'e-date', text: 'Date' }), h('input', { id: 'e-date', type: 'date', required: true })),
+        h('div', null, h('label', { for: 'e-date', text: 'Date' }), h('input', { id: 'e-date', type: 'date', required: true, onchange: function (ev) { if (ev.target.value) $('#e-month').value = ev.target.value.slice(5, 7); } })),
         h('div', null, h('label', { for: 'e-fee', text: 'Fee (RM)' }), h('input', { id: 'e-fee', type: 'number', min: 0, step: '0.01', required: true, value: '30' }))),
       h('button', { class: 'btn', type: 'submit', style: 'margin-top:14px', text: 'Create prayer' }));
     var sections = [{ id: null, name: 'Whole temple' }].concat(D.groups).map(function (g) {
