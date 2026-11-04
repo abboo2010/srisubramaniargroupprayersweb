@@ -1,0 +1,4 @@
+# The portal is also served under www.srisubramaniarlokkawi.org/groupprayers/,
+# so Netlify must not rewrite "admin.html" to "/admin" (that drops the prefix).
+[build.processing.html]
+  pretty_urls = false
