@@ -129,6 +129,30 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 #modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
 #toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);padding:11px 18px;border-radius:10px;color:#fff;font-weight:600;z-index:120;max-width:92%;text-align:center;background:var(--ok);box-shadow:var(--shadow-pop)}
 #toast.err{background:var(--bad)}
+
+/* reports: on-screen paper sheet, and the printed page */
+.paper{background:#fff;color:#2b1b12;border:1px solid var(--line);border-radius:12px;padding:26px;box-shadow:var(--shadow)}
+.paper .rhead{display:flex;gap:14px;align-items:center;border-bottom:3px solid var(--gold);padding-bottom:14px;margin-bottom:16px}
+.paper h2{font-size:21px}
+.paper h3{font-size:16px;margin:22px 0 4px}
+.paper .evsec{break-inside:avoid}
+.paper .meta{font-size:13.5px;color:#5b463a}
+.paper table{font-size:13.5px}
+.paper th,.paper td{padding:7px 8px}
+.paper tfoot td{font-weight:800;border-top:2px solid var(--line);border-bottom:0}
+.sumrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:6px 0 4px}
+.sumrow div{border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.sumrow b{display:block;font-size:19px;font-variant-numeric:tabular-nums}
+.sumrow span{font-size:12.5px;color:#5b463a}
+.evtag{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;margin-top:3px;font-size:13.5px}
+@media print{
+  .rail,.crumb,.noprint,#toast,#modal,.stat{display:none!important}
+  body{background:#fff!important;color:#000}
+  .shell{display:block;min-height:0}
+  .main{padding:0!important}
+  .paper{border:0;box-shadow:none;padding:0}
+  @page{margin:14mm}
+}
 </style>
 </head>
 <body>
@@ -237,7 +261,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
       sb.from('groups').select('*').order('created_at'),
       sb.from('memberships').select('*'),
       sb.from('prayer_events').select('*').order('event_date'),
-      sb.from('payments').select('id,devotee_id,event_id,amount,status'),
+      sb.from('payments').select('id,devotee_id,event_id,amount,status,paid_on,bank_reference'),
       sb.from('temple_settings').select('*').eq('id', 1).maybeSingle()
     ]);
     for (var i = 0; i < r.length; i++) { if (r[i].error) throw r[i].error; }
@@ -358,6 +382,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
       { id: 'devotees', label: 'Devotees', n: pendDev, icon: 'users' },
       { id: 'groups', label: 'Groups', icon: 'layers' },
       { id: 'prayers', label: 'Prayers & fees', icon: 'calendar' },
+      { id: 'reports', label: 'Reports', icon: 'grid' },
       { id: 'bank', label: 'Bank details', icon: 'bank' }
     ];
     var cur = tabs.filter(function (t) { return t.id === ui.tab; })[0] || tabs[0];
@@ -370,7 +395,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
       })),
       h('div', { class: 'me' }, h('b', { text: me.name }), can() ? pill('approved', 'Main admin') : pill('pending', 'View only'),
         h('button', { class: 'out', type: 'button', text: 'Sign out', onclick: async function () { await sb.auth.signOut(); me = null; D = null; authView.screen = 'login'; render(); } })));
-    var fn = { overview: admOverview, devotees: admDevotees, groups: admGroups, prayers: admPrayers, bank: admBank }[cur.id];
+    var fn = { overview: admOverview, devotees: admDevotees, groups: admGroups, prayers: admPrayers, reports: admReports, bank: admBank }[cur.id];
     var main = h('section', { class: 'main' },
       h('div', { class: 'crumb' }, h('span', null, 'Committee › ', h('b', { text: cur.label })), h('span', { text: fmtDate(todayISO()) })),
       can() ? null : h('div', { class: 'stat', text: 'View-only access. You can look at everything but cannot change anything.' }),
@@ -540,6 +565,81 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
     return h('div', null,
       h('div', { class: 'panel' }, h('h2', { text: 'Prayers & fees' }), h('p', { class: 'sub', text: 'Set the fee for each monthly, special and annual prayer. Every prayer needs a date.' }), can() ? form : null),
       h('div', { class: 'panel' }, sections.some(Boolean) ? sections : h('div', { class: 'empty', text: 'No prayers yet.' })));
+  }
+
+  /* ---------- Reports (by group, or by a single prayer) ---------- */
+  function pickPay(did, eid) {
+    var ps = D.payments.filter(function (p) { return p.devotee_id === did && p.event_id === eid; });
+    return ps.filter(function (p) { return p.status !== 'rejected'; })[0] || ps[ps.length - 1] || null;
+  }
+  function admReports() {
+    ui.rg = ui.rg && grp(ui.rg) ? ui.rg : (D.groups[0] && D.groups[0].id);
+    var g = grp(ui.rg);
+    if (!g) return h('div', { class: 'panel' }, h('h2', { text: 'Reports' }), h('div', { class: 'empty', text: 'Create a group first.' }));
+    var groupSel = h('select', { id: 'rp-group', onchange: function (e) { ui.rg = e.target.value; ui.rev = 'all'; render(); } },
+      D.groups.map(function (x) { return h('option', { value: x.id, text: x.name }); }));
+    groupSel.value = g.id;
+    var allEvs = D.events.filter(function (e) { return Number(e.fee_amount) > 0 && (e.group_id === g.id || (ui.rann && e.group_id === null)); })
+      .sort(function (x, y) { return (x.event_date || '9') < (y.event_date || '9') ? -1 : 1; });
+    if (ui.rev && ui.rev !== 'all' && !allEvs.some(function (e) { return e.id === ui.rev; })) ui.rev = 'all';
+    var evSel = h('select', { id: 'rp-event', onchange: function (e) { ui.rev = e.target.value; render(); } },
+      [h('option', { value: 'all', text: 'All prayers of this group' })].concat(allEvs.map(function (e) {
+        return h('option', { value: e.id, text: e.title + ' (' + (e.event_date ? fmtDate(e.event_date) : 'no date') + ')' }); })));
+    evSel.value = ui.rev || 'all';
+    var single = ui.rev && ui.rev !== 'all' ? allEvs.filter(function (e) { return e.id === ui.rev; })[0] : null;
+
+    var controls = h('div', { class: 'panel noprint' }, h('h2', { text: 'Reports' }),
+      h('p', { class: 'sub', text: 'Choose a group to see its member list and payment details, or pick one prayer. Then print it or save it as PDF.' }),
+      h('div', { class: 'formgrid' }, h('div', null, h('label', { for: 'rp-group', text: 'Group' }), groupSel), h('div', null, h('label', { for: 'rp-event', text: 'Prayer' }), evSel)),
+      h('label', { class: 'switch', style: 'margin-top:14px' },
+        h('input', { type: 'checkbox', checked: !!ui.rann, onchange: function (e) { ui.rann = e.target.checked; render(); } }), 'Include the grand annual prayer'),
+      h('div', { class: 'acts', style: 'margin-top:14px' },
+        h('button', { class: 'btn', type: 'button', text: 'Print / save as PDF', onclick: function () {
+          logIt('Printed report: ' + (single ? single.title : g.name));
+          window.print();
+        } })));
+
+    var members = membersOf(g.id).slice().sort(function (x, y) { return x.full_name < y.full_name ? -1 : 1; });
+    var evs = single ? [single] : allEvs;
+    var totV = 0, totP = 0, totO = 0;
+    var sections = evs.map(function (ev) {
+      var v = 0, pe = 0, o = 0;
+      var rows = members.map(function (d, i) {
+        var p = pickPay(d.id, ev.id), st = p ? p.status : 'unpaid';
+        if (st === 'verified') v += Number(p.amount); else if (st === 'pending') pe += Number(p.amount); else o += Number(ev.fee_amount);
+        return h('tr', null, h('td', { text: i + 1 }), h('td', { text: d.full_name }), h('td', { text: d.mobile }),
+          h('td', null, st === 'unpaid' ? h('span', { class: 'pill rejected', text: 'Unpaid' }) : pill(st)),
+          h('td', { class: 'num', text: p ? rm(p.amount) : '-' }), h('td', { text: p && p.paid_on ? fmtDate(p.paid_on) : '-' }), h('td', { text: p && p.bank_reference ? p.bank_reference : '-' }));
+      });
+      totV += v; totP += pe; totO += o;
+      return h('div', { class: 'evsec' }, h('h3', { text: ev.title }), evTag(ev),
+        h('div', { class: 'meta', text: 'Fee ' + rm(ev.fee_amount) + (ev.group_id === null ? ' · members of this group only' : '') }),
+        h('div', { class: 'tablewrap' }, h('table', null,
+          h('thead', null, h('tr', null, h('th', { text: '#' }), h('th', { text: 'Name' }), h('th', { text: 'Mobile' }), h('th', { text: 'Payment' }), h('th', { class: 'num', text: 'Amount' }), h('th', { text: 'Paid on' }), h('th', { text: 'Reference' }))),
+          h('tbody', null, rows.length ? rows : h('tr', null, h('td', { colspan: 7, text: 'No members.' }))),
+          h('tfoot', null, h('tr', null, h('td', { colspan: 7, text: 'Verified ' + rm(v) + '  ·  Pending ' + rm(pe) + '  ·  Outstanding ' + rm(o) }))))));
+    });
+    var memberRows = members.map(function (d, i) {
+      var m = D.memberships.filter(function (x) { return x.devotee_id === d.id && x.group_id === g.id; })[0];
+      return h('tr', null, h('td', { text: i + 1 }), h('td', { text: d.full_name }), h('td', { text: d.mobile }), h('td', { text: d.email }), h('td', { text: m ? fmtDate(m.joined_at) : '' }));
+    });
+    var paper = h('div', { class: 'paper' },
+      h('div', { class: 'rhead' }, h('img', { src: 'logo.png', alt: '', width: 62, height: 62 }),
+        h('div', null, h('h2', { text: single ? single.title : g.name + ': Group Report' }), single ? evTag(single) : null,
+          h('div', { class: 'meta', text: (single ? g.name + ' · ' : '') + TEMPLE }),
+          h('div', { class: 'meta', text: 'Generated ' + fmtDate(todayISO()) + ' by ' + me.name }))),
+      h('div', { class: 'sumrow' },
+        h('div', null, h('b', { text: members.length }), h('span', { text: 'Members' })),
+        h('div', null, h('b', { text: rm(totV) }), h('span', { text: 'Verified' })),
+        h('div', null, h('b', { text: rm(totP) }), h('span', { text: 'Pending' })),
+        h('div', null, h('b', { text: rm(totO) }), h('span', { text: 'Outstanding' }))),
+      single ? null : h('h3', { text: 'Members' }),
+      single ? null : h('div', { class: 'tablewrap' }, members.length ? h('table', null,
+        h('thead', null, h('tr', null, h('th', { text: '#' }), h('th', { text: 'Name' }), h('th', { text: 'Mobile' }), h('th', { text: 'Email' }), h('th', { text: 'Joined' }))),
+        h('tbody', null, memberRows)) : h('div', { class: 'empty', text: 'No members yet.' })),
+      h('h2', { style: 'margin-top:26px', text: 'Payment details' }),
+      sections.length ? sections : h('div', { class: 'empty', text: 'No prayers with fees for this group yet.' }));
+    return h('div', null, controls, paper);
   }
 
   /* ---------- Bank details ---------- */
