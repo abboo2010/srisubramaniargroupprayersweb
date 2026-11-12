@@ -69,7 +69,8 @@
 <nav>
   <button id="t-groups" class="on" type="button">My Groups</button>
   <button id="t-details" type="button">My Details</button>
-  <button id="t-pay" type="button">Payments</button>
+  <button id="t-pay" type="button">Make Payment</button>
+  <button id="t-mypay" type="button">My Payments</button>
 </nav>
 
 <main>
@@ -100,7 +101,7 @@
   </section>
 
   <section id="p-pay" class="box hidden">
-    <h2>Payments</h2>
+    <h2>Make a payment</h2>
     <p class="sub">Pay by bank transfer, then upload your proof of payment here.</p>
     <div id="bank" class="bank"></div>
 
@@ -121,7 +122,11 @@
       <div id="pay-msg" role="status" style="display:none;margin-top:12px;padding:11px 14px;border-radius:10px;font-size:14px"></div>
     </form>
 
-    <h3 class="sec">My payments</h3>
+  </section>
+
+  <section id="p-mypay" class="box hidden">
+    <h2>My Payments</h2>
+    <p class="sub">Your submitted payments and whether the committee has verified them.</p>
     <div id="history"></div>
   </section>
 </main>
@@ -161,7 +166,7 @@
 
   // ---------- tabs ----------
   function tab(name) {
-    ['groups', 'details', 'pay'].forEach(function (n) {
+    ['groups', 'details', 'pay', 'mypay'].forEach(function (n) {
       $('t-' + n).classList.toggle('on', n === name);
       $('p-' + n).classList.toggle('hidden', n !== name);
     });
@@ -169,6 +174,7 @@
   $('t-groups').onclick = function () { tab('groups'); };
   $('t-details').onclick = function () { tab('details'); };
   $('t-pay').onclick = function () { tab('pay'); loadPay(); };
+  $('t-mypay').onclick = function () { tab('mypay'); loadPay(); };
 
   // ---------- groups ----------
   async function loadGroups() {
@@ -468,6 +474,7 @@
     btn.disabled = false;
     toast('Proof submitted. The committee will verify it soon.', true);
     await loadPay();
+    tab('mypay');
   };
 
   // ---------- go ----------
