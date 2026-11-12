@@ -118,6 +118,7 @@
       <input id="p-file" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required>
       <p class="hint">JPG, PNG, WEBP or PDF. Maximum 5 MB. Make sure the amount and date are clearly visible.</p>
       <button class="btn full" type="submit">Submit proof of payment</button>
+      <div id="pay-msg" role="status" style="display:none;margin-top:12px;padding:11px 14px;border-radius:10px;font-size:14px"></div>
     </form>
 
     <h3 class="sec">My payments</h3>
@@ -400,8 +401,17 @@
     });
   }
 
+  function payMsg(text, ok) {
+    var m = $('pay-msg'); m.textContent = text; m.style.display = 'block';
+    m.style.background = ok ? '#e0f2e6' : '#fbe4e1'; m.style.color = ok ? '#1b6e37' : '#a8241c';
+    try { m.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { /* ignore */ }
+  }
+  var _toast = toast;
+  toast = function (text, ok) { _toast(text, ok); if ($('f-pay') && /proof|payment|file|prayer|transfer|upload/i.test(text)) payMsg(text, ok); };
+
   $('f-pay').onsubmit = async function (e) {
     e.preventDefault();
+    $('pay-msg').style.display = 'none';
     var btn = e.target.querySelector('button[type=submit]');
     var ids = Array.from(picked);
     if (!ids.length) return toast('Please select at least one prayer you are paying for.');
@@ -418,7 +428,7 @@
     var path = me.id + '/' + Date.now() + '.' + ext;
 
     var up = await sb.storage.from('payment-proofs').upload(path, blob, { contentType: blob.type, upsert: false });
-    if (up.error) { btn.disabled = false; return toast('Could not upload the file. Please try again.'); }
+    if (up.error) { btn.disabled = false; return toast('Could not upload the file. Please try again. (' + (up.error.message || 'upload error') + ')'); }
 
     var ref = $('p-ref').value.trim() || null;
     var rows = ids.map(function (id) {
@@ -429,7 +439,7 @@
     if (ins.error) {
       await sb.storage.from('payment-proofs').remove([path]);
       btn.disabled = false;
-      return toast(ins.error.code === '23505' ? 'A payment for one of these prayers was already submitted.' : 'Could not save your payment. Please try again.');
+      return toast(ins.error.code === '23505' ? 'A payment for one of these prayers was already submitted.' : 'Could not save your payment. Please try again. (' + (ins.error.message || ins.error.code || 'error') + ')');
     }
     picked.clear(); $('p-file').value = ''; $('p-ref').value = '';
     btn.disabled = false;
