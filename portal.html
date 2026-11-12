@@ -152,7 +152,11 @@
   if (!r.data || r.data.status !== 'approved') return (window.location.href = 'login.html');
   me = r.data;
 
-  $('out').onclick = async function () { await sb.auth.signOut(); window.location.href = 'login.html'; };
+  async function hardSignOut() {
+    try { await Promise.race([sb.auth.signOut({ scope: 'local' }), new Promise(function (r) { setTimeout(r, 2500); })]); } catch (e) { /* ignore */ }
+    try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('sb-') === 0) localStorage.removeItem(k); }); } catch (e) { /* ignore */ }
+  }
+  $('out').onclick = async function () { await hardSignOut(); window.location.href = 'login.html'; };
 
   // ---------- tabs ----------
   function tab(name) {

@@ -399,13 +399,18 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
           icon(t.icon, 19), h('span', { text: t.label }), t.n ? h('span', { class: 'count', text: t.n }) : null);
       })),
       h('div', { class: 'me' }, h('b', { text: me.name }), can() ? pill('approved', 'Main admin') : pill('pending', 'View only'),
-        h('button', { class: 'out', type: 'button', text: 'Sign out', onclick: async function () { await sb.auth.signOut(); me = null; D = null; authView.screen = 'login'; render(); } })));
+        h('button', { class: 'out', type: 'button', text: 'Sign out', onclick: async function () { await hardSignOut(); me = null; D = null; authView.screen = 'login'; render(); } })));
     var fn = { overview: admOverview, devotees: admDevotees, groups: admGroups, prayers: admPrayers, payments: admPayments, reports: admReports, bank: admBank, team: admTeam, log: admLog }[cur.id];
     var main = h('section', { class: 'main' },
       h('div', { class: 'crumb' }, h('span', null, 'Committee › ', h('b', { text: cur.label })), h('span', { text: fmtDate(todayISO()) })),
       can() ? null : h('div', { class: 'stat', text: 'View-only access. You can look at everything but cannot change anything.' }),
       fn());
     root.appendChild(h('div', { class: 'shell' }, rail, main));
+  }
+
+  async function hardSignOut() {
+    try { await Promise.race([sb.auth.signOut({ scope: 'local' }), new Promise(function (r) { setTimeout(r, 2500); })]); } catch (e) { /* ignore */ }
+    try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('sb-') === 0) localStorage.removeItem(k); }); } catch (e) { /* ignore */ }
   }
 
   function chips(opts, cur, pick) {
@@ -857,7 +862,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
       }
       var r = await sb.from('admins').select('full_name,email,role').eq('user_id', user.id).maybeSingle();
       if (r.error || !r.data) {
-        await sb.auth.signOut(); me = null; D = null; authView.screen = 'login';
+        await hardSignOut(); me = null; D = null; authView.screen = 'login';
         say('This account is not a committee member.'); return render();
       }
       me = { id: user.id, name: r.data.full_name || r.data.email, email: r.data.email, role: r.data.role };

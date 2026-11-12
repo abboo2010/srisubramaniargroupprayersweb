@@ -230,7 +230,7 @@
     if (!user) return show('v-auth');
     var r = await sb.from('devotees').select('full_name,status').eq('id', user.id).maybeSingle();
     if (r.error || !r.data) {
-      await sb.auth.signOut(); show('v-auth');
+      await hardSignOut(); show('v-auth');
       return msg('We could not find your registration. Please register first.');
     }
     if (r.data.status === 'approved') { window.location.href = 'portal.html'; return; }
@@ -239,8 +239,12 @@
     show('v-pending');
   }
 
+  async function hardSignOut() {
+    try { await Promise.race([sb.auth.signOut({ scope: 'local' }), new Promise(function (r) { setTimeout(r, 2500); })]); } catch (e) { /* ignore */ }
+    try { Object.keys(localStorage).forEach(function (k) { if (k.indexOf('sb-') === 0) localStorage.removeItem(k); }); } catch (e) { /* ignore */ }
+  }
   document.querySelectorAll('[data-signout]').forEach(function (b) {
-    b.onclick = async function () { await sb.auth.signOut(); setTab(true); show('v-auth'); };
+    b.onclick = async function () { await hardSignOut(); setTab(true); show('v-auth'); };
   });
 
   // already signed in from earlier?
